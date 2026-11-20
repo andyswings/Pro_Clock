@@ -1,0 +1,24 @@
+[package]
+name = "pro-clock"
+version = "0.2.0"
+edition = "2021"
+description = "A free, open-source, 100% offline Clockify replacement built in Rust for Linux"
+license = "MIT"
+authors = ["Pro Clock Contributors"]
+
+[dependencies]
+eframe = "0.29"
+egui = "0.29"
+rusqlite = { version = "0.32", features = ["bundled"] }
+chrono = { version = "0.4", features = ["serde"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+csv = "1"
+directories = "5"
+anyhow = "1"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true

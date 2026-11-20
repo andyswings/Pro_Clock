@@ -1,0 +1,6 @@
+target/
+dist/
+packaging/
+*.db
+*.db-shm
+*.db-wal
