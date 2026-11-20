@@ -1,8 +1,10 @@
 # Pro Clock
 
-A free, open-source, **100% offline** Clockify replacement built in Rust for Ubuntu Linux.
+A free, open-source, **100% offline** Clockify replacement built in Rust for Linux and Windows.
 
-No accounts, no subscriptions, no cloud lock-in, and no telemetry — all of your time tracking data stays in a single local SQLite database on your machine (`~/.local/share/pro-clock/pro_clock.db`).
+No accounts, no subscriptions, no cloud lock-in, and no telemetry — all of your time tracking data stays in a single local SQLite database on your machine:
+- **Linux**: `~/.local/share/pro-clock/pro_clock.db`
+- **Windows**: `%APPDATA%\proclock\pro-clock\data\pro_clock.db`
 
 ## Features
 
@@ -32,6 +34,28 @@ This installs the binary to `~/.local/bin/pro-clock` and adds **Pro Clock** to y
 To uninstall:
 ```bash
 ./uninstall.sh
+```
+
+## Installing on Windows
+
+### Option 1: Windows Setup Wizard (`.exe` installer, recommended)
+Download `ProClock-Setup-0.2.0-x64.exe` from the [GitHub Releases](https://github.com/andyswings/Pro_Clock/releases) page (or build it yourself on Windows with [Inno Setup 6](https://jrsoftware.org/isinfo.php)):
+```powershell
+.\packaging\windows\build-installer.ps1
+```
+This creates:
+- `dist\ProClock-Setup-0.2.0-x64.exe` — full graphical Windows installer (Start Menu shortcut, optional Desktop shortcut, Add/Remove Programs uninstaller; works without admin rights or system-wide).
+- `dist\ProClock-0.2.0-windows-x64-portable.zip` — portable no-install archive (pass `-PortableOnly` if you don't have Inno Setup installed).
+
+### Option 2: User-local install from source (PowerShell)
+```powershell
+.\install.ps1
+```
+This compiles `pro-clock.exe`, installs it to `%LOCALAPPDATA%\ProClock`, and adds **Pro Clock** to your Start Menu (pass `-DesktopShortcut` for a Desktop icon).
+
+To uninstall (preserves your SQLite database):
+```powershell
+.\uninstall.ps1
 ```
 
 ## Building from Source

@@ -1,5 +1,5 @@
 use crate::models::{format_money, parse_hex_color, PRESET_COLORS};
-use crate::notify::send_notification;
+use crate::notify::{open_folder, send_notification};
 use crate::theme::{apply_theme, card_frame, color_dot, pill_badge, primary_button, Palette};
 use crate::ui::ProClockApp;
 use chrono::Local;
@@ -537,7 +537,7 @@ pub fn render_settings_view(app: &mut ProClockApp, ctx: &Context, ui: &mut Ui, p
                 if ui
                     .checkbox(
                         &mut app.settings.notifications_enabled,
-                        "Enable Ubuntu desktop notifications (notify-send)",
+                        "Enable desktop notifications",
                     )
                     .changed()
                 {
@@ -549,7 +549,7 @@ pub fn render_settings_view(app: &mut ProClockApp, ctx: &Context, ui: &mut Ui, p
                     send_notification(
                         true,
                         "Pro Clock",
-                        "Desktop notifications are working on Ubuntu!",
+                        "Desktop notifications are working!",
                     );
                     app.set_status("Sent test desktop notification.", false);
                 }
@@ -650,7 +650,7 @@ pub fn render_settings_view(app: &mut ProClockApp, ctx: &Context, ui: &mut Ui, p
                 }
                 if ui.button("📂 Open Data Folder").clicked() {
                     if let Some(parent) = app.db.path().parent() {
-                        let _ = std::process::Command::new("xdg-open").arg(parent).spawn();
+                        open_folder(parent);
                     }
                 }
             });

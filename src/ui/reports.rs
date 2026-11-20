@@ -1,5 +1,6 @@
 use crate::export::{export_csv, export_json};
 use crate::models::{format_duration, format_hours_decimal, format_money, parse_hex_color, TimeEntry};
+use crate::notify::open_folder;
 use crate::theme::{card_frame, color_dot, primary_button, Palette};
 use crate::ui::{DateRangePreset, ProClockApp};
 use chrono::{Datelike, Duration, Local, NaiveDate};
@@ -348,9 +349,7 @@ pub fn render_reports_view(app: &mut ProClockApp, ui: &mut Ui, p: &Palette) {
                 }
 
                 if ui.button("📂 Open Folder").clicked() {
-                    let _ = std::process::Command::new("xdg-open")
-                        .arg(&app.export_dir)
-                        .spawn();
+                    open_folder(&PathBuf::from(&app.export_dir));
                 }
             });
         });
