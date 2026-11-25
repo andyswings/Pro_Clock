@@ -1,3 +1,4 @@
+pub mod help;
 pub mod manage;
 pub mod pomodoro;
 pub mod reports;
@@ -23,6 +24,7 @@ pub enum NavTab {
     Clients,
     Tags,
     Settings,
+    Help,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -133,6 +135,10 @@ pub struct ProClockApp {
 
     // Pomodoro state
     pub pomodoro: PomodoroState,
+
+    // Help & Guide state
+    pub help_topic: help::HelpTopic,
+    pub help_search: String,
 }
 
 impl ProClockApp {
@@ -203,6 +209,8 @@ impl ProClockApp {
             timesheet_quick_duration: "1:00".to_string(),
             timesheet_quick_desc: String::new(),
             pomodoro,
+            help_topic: help::HelpTopic::QuickStart,
+            help_search: String::new(),
         };
         app.reload_data();
         app.sync_tracker_from_running();
@@ -290,95 +298,101 @@ impl ProClockApp {
 
                 ui.add_space(14.0);
 
-                // Live running timer badge in sidebar
-                if let Some(running) = self.running_entry().cloned() {
-                    Frame::none()
-                        .fill(Color32::from_rgba_unmultiplied(233, 84, 32, 32))
-                        .stroke(Stroke::new(1.0_f32, p.accent))
-                        .rounding(Rounding::same(8.0))
-                        .inner_margin(Margin::same(10.0))
-                        .show(ui, |ui| {
-                            ui.horizontal(|ui| {
-                                color_dot(ui, p.accent, 4.5);
-                                ui.label(RichText::new("TRACKING").size(10.5).strong().color(p.accent));
-                            });
-                            ui.label(
-                                RichText::new(format_duration(running.duration_secs()))
-                                    .monospace()
-                                    .size(18.0)
-                                    .strong()
-                                    .color(p.text_primary),
-                            );
-                            let desc = if running.description.is_empty() {
-                                "(No description)"
-                            } else {
-                                &running.description
+                egui::ScrollArea::vertical()
+                    .id_salt("sidebar_nav_scroll")
+                    .max_height((ui.available_height() - 62.0).max(120.0))
+                    .show(ui, |ui| {
+                        // Live running timer badge in sidebar
+                        if let Some(running) = self.running_entry().cloned() {
+                            Frame::none()
+                                .fill(Color32::from_rgba_unmultiplied(233, 84, 32, 32))
+                                .stroke(Stroke::new(1.0_f32, p.accent))
+                                .rounding(Rounding::same(8.0))
+                                .inner_margin(Margin::same(10.0))
+                                .show(ui, |ui| {
+                                    ui.horizontal(|ui| {
+                                        color_dot(ui, p.accent, 4.5);
+                                        ui.label(RichText::new("TRACKING").size(10.5).strong().color(p.accent));
+                                    });
+                                    ui.label(
+                                        RichText::new(format_duration(running.duration_secs()))
+                                            .monospace()
+                                            .size(18.0)
+                                            .strong()
+                                            .color(p.text_primary),
+                                    );
+                                    let desc = if running.description.is_empty() {
+                                        "(No description)"
+                                    } else {
+                                        &running.description
+                                    };
+                                    ui.label(
+                                        RichText::new(desc)
+                                            .size(12.0)
+                                            .color(p.text_muted),
+                                    );
+                                });
+                            ui.add_space(10.0);
+                        }
+
+                        // Live Pomodoro indicator in sidebar
+                        if app_pomo_active(&self.pomodoro) {
+                            let pomo_color = match self.pomodoro.phase {
+                                PomodoroPhase::Focus => p.accent,
+                                PomodoroPhase::ShortBreak => p.accent_blue,
+                                PomodoroPhase::LongBreak => p.success,
                             };
-                            ui.label(
-                                RichText::new(desc)
-                                    .size(12.0)
-                                    .color(p.text_muted),
-                            );
-                        });
-                    ui.add_space(10.0);
-                }
+                            Frame::none()
+                                .fill(Color32::from_rgba_unmultiplied(
+                                    pomo_color.r(),
+                                    pomo_color.g(),
+                                    pomo_color.b(),
+                                    30,
+                                ))
+                                .stroke(Stroke::new(1.0_f32, pomo_color))
+                                .rounding(Rounding::same(8.0))
+                                .inner_margin(Margin::same(10.0))
+                                .show(ui, |ui| {
+                                    ui.horizontal(|ui| {
+                                        color_dot(ui, pomo_color, 4.5);
+                                        ui.label(
+                                            RichText::new(self.pomodoro.phase.label().to_uppercase())
+                                                .size(10.5)
+                                                .strong()
+                                                .color(pomo_color),
+                                        );
+                                    });
+                                    ui.label(
+                                        RichText::new(self.pomodoro.formatted_remaining())
+                                            .monospace()
+                                            .size(18.0)
+                                            .strong()
+                                            .color(p.text_primary),
+                                    );
+                                });
+                            ui.add_space(10.0);
+                        }
 
-                // Live Pomodoro indicator in sidebar
-                if app_pomo_active(&self.pomodoro) {
-                    let pomo_color = match self.pomodoro.phase {
-                        PomodoroPhase::Focus => p.accent,
-                        PomodoroPhase::ShortBreak => p.accent_blue,
-                        PomodoroPhase::LongBreak => p.success,
-                    };
-                    Frame::none()
-                        .fill(Color32::from_rgba_unmultiplied(
-                            pomo_color.r(),
-                            pomo_color.g(),
-                            pomo_color.b(),
-                            30,
-                        ))
-                        .stroke(Stroke::new(1.0_f32, pomo_color))
-                        .rounding(Rounding::same(8.0))
-                        .inner_margin(Margin::same(10.0))
-                        .show(ui, |ui| {
-                            ui.horizontal(|ui| {
-                                color_dot(ui, pomo_color, 4.5);
-                                ui.label(
-                                    RichText::new(self.pomodoro.phase.label().to_uppercase())
-                                        .size(10.5)
-                                        .strong()
-                                        .color(pomo_color),
-                                );
-                            });
-                            ui.label(
-                                RichText::new(self.pomodoro.formatted_remaining())
-                                    .monospace()
-                                    .size(18.0)
-                                    .strong()
-                                    .color(p.text_primary),
-                            );
-                        });
-                    ui.add_space(10.0);
-                }
+                        ui.label(RichText::new("TRACK").size(10.5).strong().color(p.text_muted));
+                        ui.add_space(2.0);
+                        self.nav_button(ui, p, NavTab::Tracker, "⏱  Time Tracker");
+                        self.nav_button(ui, p, NavTab::Timesheet, "📅  Timesheet");
+                        self.nav_button(ui, p, NavTab::Pomodoro, "🍅  Pomodoro");
+                        self.nav_button(ui, p, NavTab::Reports, "📊  Reports & Export");
 
-                ui.label(RichText::new("TRACK").size(10.5).strong().color(p.text_muted));
-                ui.add_space(2.0);
-                self.nav_button(ui, p, NavTab::Tracker, "⏱  Time Tracker");
-                self.nav_button(ui, p, NavTab::Timesheet, "📅  Timesheet");
-                self.nav_button(ui, p, NavTab::Pomodoro, "🍅  Pomodoro");
-                self.nav_button(ui, p, NavTab::Reports, "📊  Reports & Export");
+                        ui.add_space(12.0);
+                        ui.label(RichText::new("MANAGE").size(10.5).strong().color(p.text_muted));
+                        ui.add_space(2.0);
+                        self.nav_button(ui, p, NavTab::Projects, "📁  Projects");
+                        self.nav_button(ui, p, NavTab::Clients, "🏢  Clients");
+                        self.nav_button(ui, p, NavTab::Tags, "🏷  Tags");
 
-                ui.add_space(12.0);
-                ui.label(RichText::new("MANAGE").size(10.5).strong().color(p.text_muted));
-                ui.add_space(2.0);
-                self.nav_button(ui, p, NavTab::Projects, "📁  Projects");
-                self.nav_button(ui, p, NavTab::Clients, "🏢  Clients");
-                self.nav_button(ui, p, NavTab::Tags, "🏷  Tags");
-
-                ui.add_space(12.0);
-                ui.label(RichText::new("SYSTEM").size(10.5).strong().color(p.text_muted));
-                ui.add_space(2.0);
-                self.nav_button(ui, p, NavTab::Settings, "⚙  Settings");
+                        ui.add_space(12.0);
+                        ui.label(RichText::new("SYSTEM").size(10.5).strong().color(p.text_muted));
+                        ui.add_space(2.0);
+                        self.nav_button(ui, p, NavTab::Settings, "⚙  Settings");
+                        self.nav_button(ui, p, NavTab::Help, "❓  Help & Guide");
+                    });
 
                 ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
                     ui.label(
@@ -497,6 +511,7 @@ impl eframe::App for ProClockApp {
                     NavTab::Clients => manage::render_clients_view(self, ui, &p),
                     NavTab::Tags => manage::render_tags_view(self, ui, &p),
                     NavTab::Settings => manage::render_settings_view(self, ctx, ui, &p),
+                    NavTab::Help => help::render_help_view(self, ui, &p),
                 }
             });
 
