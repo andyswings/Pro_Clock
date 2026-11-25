@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 <#
 .SYNOPSIS
     Installs Pro Clock for the current Windows user (%LOCALAPPDATA%\ProClock) with Start Menu shortcut.
@@ -36,6 +36,10 @@ New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
 Copy-Item -Force $BinSrc $InstalledExe
 Copy-Item -Force (Join-Path $RootDir "assets\pro-clock.ico") $InstalledIcon
 Copy-Item -Force (Join-Path $RootDir "LICENSE") (Join-Path $InstallDir "LICENSE")
+Copy-Item -Force (Join-Path $RootDir "README.md") (Join-Path $InstallDir "README.md")
+$InstalledDocs = Join-Path $InstallDir "docs"
+if (Test-Path $InstalledDocs) { Remove-Item -Recurse -Force $InstalledDocs }
+Copy-Item -Recurse -Force (Join-Path $RootDir "docs") $InstalledDocs
 
 # Create Start Menu shortcut
 $WshShell = New-Object -ComObject WScript.Shell

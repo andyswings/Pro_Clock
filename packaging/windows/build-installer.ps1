@@ -52,6 +52,7 @@ New-Item -ItemType Directory -Force -Path $StageDir | Out-Null
 Copy-Item $ExePath (Join-Path $StageDir "pro-clock.exe")
 Copy-Item (Join-Path $RootDir "LICENSE") (Join-Path $StageDir "LICENSE")
 Copy-Item (Join-Path $RootDir "README.md") (Join-Path $StageDir "README.md")
+Copy-Item -Recurse -Force (Join-Path $RootDir "docs") (Join-Path $StageDir "docs")
 
 Write-Host "==> Creating portable archive: $ZipPath" -ForegroundColor Cyan
 Compress-Archive -Path "$StageDir\*" -DestinationPath $ZipPath -Force

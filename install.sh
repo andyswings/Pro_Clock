@@ -9,9 +9,14 @@ export PATH="$HOME/.cargo/bin:$PATH"
 
 if [[ "${1:-}" == "--system" ]]; then
     echo "==> Building and installing system-wide .deb package (requires sudo)..."
+    VERSION="$(sed -nE 's/^version[[:space:]]*=[[:space:]]*"([^"]+)"/\1/p' "$ROOT_DIR/Cargo.toml" | head -n 1)"
+    if [[ -z "$VERSION" ]]; then
+        echo "Error: Could not parse version from Cargo.toml" >&2
+        exit 1
+    fi
     bash "$ROOT_DIR/packaging/build-deb.sh"
     ARCH="$(dpkg --print-architecture)"
-    DEB_FILE="$ROOT_DIR/dist/${APP_NAME}_0.2.0_${ARCH}.deb"
+    DEB_FILE="$ROOT_DIR/dist/${APP_NAME}_${VERSION}_${ARCH}.deb"
     sudo apt install -y "$DEB_FILE"
     echo "==> Pro Clock installed system-wide! Launch it from your Ubuntu Apps menu or run 'pro-clock'."
     exit 0
@@ -26,9 +31,13 @@ fi
 mkdir -p "$HOME/.local/bin"
 mkdir -p "$HOME/.local/share/applications"
 mkdir -p "$HOME/.local/share/icons/hicolor/scalable/apps"
+mkdir -p "$HOME/.local/share/doc/$APP_NAME/docs/tutorials"
 
 install -m 755 "$BIN_SRC" "$HOME/.local/bin/$APP_NAME"
 install -m 644 "$ROOT_DIR/assets/pro-clock.svg" "$HOME/.local/share/icons/hicolor/scalable/apps/pro-clock.svg"
+install -m 644 "$ROOT_DIR/README.md" "$HOME/.local/share/doc/$APP_NAME/README.md"
+install -m 644 "$ROOT_DIR/docs/HELP.md" "$HOME/.local/share/doc/$APP_NAME/docs/HELP.md"
+install -m 644 "$ROOT_DIR/docs/tutorials/"*.md "$HOME/.local/share/doc/$APP_NAME/docs/tutorials/"
 
 sed "s|^Exec=pro-clock|Exec=$HOME/.local/bin/$APP_NAME|" \
     "$ROOT_DIR/packaging/pro-clock.desktop" \
@@ -45,6 +54,7 @@ echo ""
 echo "==> Pro Clock installed successfully!"
 echo "    Binary:  $HOME/.local/bin/$APP_NAME"
 echo "    Desktop: $HOME/.local/share/applications/pro-clock.desktop"
+echo "    Docs:    $HOME/.local/share/doc/$APP_NAME"
 echo ""
 echo "You can now launch 'Pro Clock' from your Ubuntu Applications menu,"
 echo "or run '$HOME/.local/bin/$APP_NAME' from a terminal."

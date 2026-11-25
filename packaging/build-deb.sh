@@ -2,9 +2,13 @@
 set -euo pipefail
 
 APP_NAME="pro-clock"
-VERSION="0.2.0"
 ARCH="$(dpkg --print-architecture)"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+VERSION="$(sed -nE 's/^version[[:space:]]*=[[:space:]]*"([^"]+)"/\1/p' "$ROOT_DIR/Cargo.toml" | head -n 1)"
+if [[ -z "$VERSION" ]]; then
+    echo "Error: Could not parse version from Cargo.toml" >&2
+    exit 1
+fi
 DIST_DIR="$ROOT_DIR/dist"
 PKG_DIR="$DIST_DIR/${APP_NAME}_${VERSION}_${ARCH}"
 
@@ -20,12 +24,15 @@ mkdir -p "$PKG_DIR/DEBIAN"
 mkdir -p "$PKG_DIR/usr/bin"
 mkdir -p "$PKG_DIR/usr/share/applications"
 mkdir -p "$PKG_DIR/usr/share/icons/hicolor/scalable/apps"
-mkdir -p "$PKG_DIR/usr/share/doc/$APP_NAME"
+mkdir -p "$PKG_DIR/usr/share/doc/$APP_NAME/docs/tutorials"
 
 install -m 755 "$ROOT_DIR/target/release/$APP_NAME" "$PKG_DIR/usr/bin/$APP_NAME"
 install -m 644 "$ROOT_DIR/packaging/pro-clock.desktop" "$PKG_DIR/usr/share/applications/pro-clock.desktop"
 install -m 644 "$ROOT_DIR/assets/pro-clock.svg" "$PKG_DIR/usr/share/icons/hicolor/scalable/apps/pro-clock.svg"
 install -m 644 "$ROOT_DIR/LICENSE" "$PKG_DIR/usr/share/doc/$APP_NAME/copyright"
+install -m 644 "$ROOT_DIR/README.md" "$PKG_DIR/usr/share/doc/$APP_NAME/README.md"
+install -m 644 "$ROOT_DIR/docs/HELP.md" "$PKG_DIR/usr/share/doc/$APP_NAME/docs/HELP.md"
+install -m 644 "$ROOT_DIR/docs/tutorials/"*.md "$PKG_DIR/usr/share/doc/$APP_NAME/docs/tutorials/"
 
 INSTALLED_SIZE="$(du -sk "$PKG_DIR/usr" | awk '{print $1}')"
 
@@ -38,12 +45,14 @@ Architecture: $ARCH
 Installed-Size: $INSTALLED_SIZE
 Depends: libc6, libgcc-s1, libgl1, libx11-6 | libwayland-client0
 Maintainer: Pro Clock Contributors <pro-clock@localhost>
-Homepage: https://github.com/pro-clock/pro-clock
+Homepage: https://github.com/andyswings/Pro_Clock
 Description: Free, open-source, 100% offline Clockify replacement
  Pro Clock is a fast, native Linux time tracker written in Rust.
- It features a live stopwatch timer, manual time entry, projects,
- clients, tags, billable rates, visual reports, and CSV/JSON export,
- all stored locally in SQLite with zero cloud dependencies.
+ It features a live stopwatch timer, manual time entry, a weekly
+ timesheet grid, a Pomodoro focus timer with desktop notifications,
+ projects, clients, tags, 3-tier billable rates, visual reports,
+ Clockify-compatible CSV/JSON export, and a built-in offline Help &
+ Guide, all stored locally in SQLite with zero cloud dependencies.
 EOF
 
 cat > "$PKG_DIR/DEBIAN/postinst" <<'EOF'
