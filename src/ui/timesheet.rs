@@ -1,10 +1,10 @@
 use crate::models::{
     format_duration_hm, format_money, parse_duration_input, parse_hex_color,
 };
-use crate::theme::{card_frame, color_dot, primary_button, Palette};
+use crate::theme::{card_frame, color_dot, primary_button, with_alpha, Palette};
 use crate::ui::ProClockApp;
 use chrono::{Datelike, Duration, Local, NaiveDate, NaiveDateTime, NaiveTime, TimeZone, Utc};
-use egui::{Color32, ComboBox, Grid, RichText, Rounding, ScrollArea, Stroke, TextEdit, Ui, Vec2};
+use egui::{ComboBox, Grid, RichText, Rounding, ScrollArea, Stroke, TextEdit, Ui, Vec2};
 use std::collections::{BTreeSet, HashMap};
 
 fn week_start_for(date: NaiveDate, monday_start: bool) -> NaiveDate {
@@ -152,7 +152,7 @@ pub fn render_timesheet_view(app: &mut ProClockApp, ui: &mut Ui, p: &Palette) {
                                     "00:00".to_string()
                                 };
                                 let text_col = if is_selected {
-                                    Color32::WHITE
+                                    p.text_on_accent
                                 } else if secs > 0 {
                                     p.text_primary
                                 } else {
@@ -161,7 +161,7 @@ pub fn render_timesheet_view(app: &mut ProClockApp, ui: &mut Ui, p: &Palette) {
                                 let fill = if is_selected {
                                     p.accent
                                 } else if secs > 0 {
-                                    Color32::from_rgba_unmultiplied(3, 169, 244, 28)
+                                    with_alpha(p.accent_blue, 28)
                                 } else {
                                     p.bg_elevated
                                 };
@@ -176,7 +176,7 @@ pub fn render_timesheet_view(app: &mut ProClockApp, ui: &mut Ui, p: &Palette) {
                                 )
                                 .fill(fill)
                                 .stroke(stroke)
-                                .rounding(Rounding::same(6.0))
+                                .rounding(Rounding::same(p.control_rounding))
                                 .min_size(Vec2::new(72.0, 32.0));
 
                                 if ui

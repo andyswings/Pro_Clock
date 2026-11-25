@@ -11,7 +11,7 @@ Welcome to **Pro Clock**! By the end of this 5-minute walkthrough, you will have
 1. Launch **Pro Clock**.
 2. In the left sidebar under **SYSTEM**, click **⚙ Settings**.
 3. Under **Appearance & Workspace**:
-   - Choose your preferred theme with **Dark Mode (Ubuntu Yaru Dark)** (or click the **☀ Switch to Light** / **🌙 Switch to Dark** button at the bottom-left of the sidebar anytime).
+   - Choose your preferred theme under **Theme** (**Ubuntu Yaru Dark**, **Ubuntu Yaru Light**, **Windows 11 Dark**, or **Windows 11 Light**), or click the **☀ Switch to Light** / **🌙 Switch to Dark** button at the bottom-left of the sidebar anytime.
    - Check or uncheck **Week starts on Monday** to match your calendar week.
    - Set **Currency Symbol** (e.g. `$`, `€`, `£`).
    - Set **Default Hourly Rate** (for example, `75.00` — this acts as your fallback rate if a project doesn't specify one).

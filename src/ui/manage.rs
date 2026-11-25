@@ -1,9 +1,11 @@
-use crate::models::{format_money, parse_hex_color, PRESET_COLORS};
+use crate::models::{format_money, parse_hex_color, AppTheme, PRESET_COLORS};
 use crate::notify::{open_folder, send_notification};
-use crate::theme::{apply_theme, card_frame, color_dot, pill_badge, primary_button, Palette};
+use crate::theme::{
+    apply_theme, card_frame, color_dot, pill_badge, primary_button, with_alpha, Palette,
+};
 use crate::ui::ProClockApp;
 use chrono::Local;
-use egui::{ComboBox, Context, RichText, Rounding, ScrollArea, Stroke, TextEdit, Ui, Vec2};
+use egui::{ComboBox, Context, Rect, RichText, Rounding, ScrollArea, Sense, Stroke, TextEdit, Ui, Vec2};
 use std::path::PathBuf;
 
 // ─── Projects View ────────────────────────────────────────────────────────────
@@ -480,11 +482,20 @@ pub fn render_settings_view(app: &mut ProClockApp, ctx: &Context, ui: &mut Ui, p
             ui.label(RichText::new("Appearance & Workspace").size(15.0).strong().color(p.text_primary));
             ui.add_space(8.0);
 
-            let mut dark = app.settings.dark_mode;
-            if ui.checkbox(&mut dark, "Dark Mode (Ubuntu Yaru Dark)").changed() {
-                app.settings.dark_mode = dark;
-                let _ = app.db.save_settings(&app.settings);
-                apply_theme(ctx, dark);
+            ui.label(RichText::new("Theme").size(13.0).strong().color(p.text_primary));
+            ui.add_space(4.0);
+            for row in AppTheme::ALL.chunks(2) {
+                ui.horizontal_wrapped(|ui| {
+                    for &candidate in row {
+                        let selected = app.settings.theme == candidate;
+                        if theme_option_button(ui, p, candidate, selected).clicked() {
+                            app.settings.theme = candidate;
+                            let _ = app.db.save_settings(&app.settings);
+                            apply_theme(ctx, candidate);
+                        }
+                    }
+                });
+                ui.add_space(4.0);
             }
 
             ui.add_space(6.0);
@@ -674,4 +685,73 @@ fn color_picker_row(ui: &mut Ui, selected_hex: &mut String, p: &Palette) {
         }
     }
     let _ = Rounding::ZERO;
+}
+
+fn theme_option_button(
+    ui: &mut Ui,
+    p: &Palette,
+    candidate: AppTheme,
+    selected: bool,
+) -> egui::Response {
+    let cp = Palette::for_theme(candidate);
+    let desired = Vec2::new(195.0, 42.0);
+    let (rect, resp) = ui.allocate_exact_size(desired, Sense::click());
+
+    let fill = if selected {
+        with_alpha(p.accent, 32)
+    } else if resp.hovered() {
+        p.bg_hovered
+    } else {
+        p.bg_elevated
+    };
+    let stroke = if selected {
+        Stroke::new(1.5_f32, p.accent)
+    } else if resp.hovered() {
+        Stroke::new(1.0_f32, p.accent)
+    } else {
+        Stroke::new(1.0_f32, p.border)
+    };
+
+    let painter = ui.painter();
+    painter.rect(
+        rect,
+        Rounding::same(p.control_rounding),
+        fill,
+        stroke,
+    );
+
+    // Mini window swatch preview
+    let swatch = Rect::from_min_size(
+        egui::pos2(rect.left() + 8.0, rect.center().y - 11.0),
+        Vec2::new(32.0, 22.0),
+    );
+    painter.rect_filled(swatch, Rounding::same(3.0), cp.bg_canvas);
+    let sidebar_strip = Rect::from_min_size(swatch.min, Vec2::new(9.0, swatch.height()));
+    painter.rect_filled(
+        sidebar_strip,
+        Rounding {
+            nw: 3.0,
+            sw: 3.0,
+            ne: 0.0,
+            se: 0.0,
+        },
+        cp.bg_sidebar,
+    );
+    painter.circle_filled(
+        egui::pos2(swatch.right() - 7.5, swatch.center().y),
+        4.0,
+        cp.accent,
+    );
+    painter.rect_stroke(swatch, Rounding::same(3.0), Stroke::new(1.0_f32, cp.border));
+
+    let text_color = if selected { p.accent } else { p.text_primary };
+    painter.text(
+        egui::pos2(swatch.right() + 9.0, rect.center().y),
+        egui::Align2::LEFT_CENTER,
+        candidate.label(),
+        egui::FontId::proportional(13.0),
+        text_color,
+    );
+
+    resp
 }

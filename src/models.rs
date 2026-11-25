@@ -92,9 +92,91 @@ impl TimeEntry {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum AppTheme {
+    UbuntuDark,
+    UbuntuLight,
+    WindowsDark,
+    WindowsLight,
+}
+
+impl AppTheme {
+    pub const ALL: &'static [AppTheme] = &[
+        Self::UbuntuDark,
+        Self::UbuntuLight,
+        Self::WindowsDark,
+        Self::WindowsLight,
+    ];
+
+    pub fn default_for_os() -> Self {
+        #[cfg(target_os = "windows")]
+        {
+            Self::WindowsDark
+        }
+        #[cfg(not(target_os = "windows"))]
+        {
+            Self::UbuntuDark
+        }
+    }
+
+    pub fn is_dark(self) -> bool {
+        matches!(self, Self::UbuntuDark | Self::WindowsDark)
+    }
+
+    pub fn is_windows(self) -> bool {
+        matches!(self, Self::WindowsDark | Self::WindowsLight)
+    }
+
+    pub fn toggled_mode(self) -> Self {
+        match self {
+            Self::UbuntuDark => Self::UbuntuLight,
+            Self::UbuntuLight => Self::UbuntuDark,
+            Self::WindowsDark => Self::WindowsLight,
+            Self::WindowsLight => Self::WindowsDark,
+        }
+    }
+
+    pub fn with_dark(self, dark: bool) -> Self {
+        match (self.is_windows(), dark) {
+            (false, true) => Self::UbuntuDark,
+            (false, false) => Self::UbuntuLight,
+            (true, true) => Self::WindowsDark,
+            (true, false) => Self::WindowsLight,
+        }
+    }
+
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::UbuntuDark => "Ubuntu Yaru Dark",
+            Self::UbuntuLight => "Ubuntu Yaru Light",
+            Self::WindowsDark => "Windows 11 Dark",
+            Self::WindowsLight => "Windows 11 Light",
+        }
+    }
+
+    pub fn as_key(self) -> &'static str {
+        match self {
+            Self::UbuntuDark => "ubuntu_dark",
+            Self::UbuntuLight => "ubuntu_light",
+            Self::WindowsDark => "windows_dark",
+            Self::WindowsLight => "windows_light",
+        }
+    }
+
+    pub fn from_key(key: &str) -> Option<Self> {
+        match key.trim().to_ascii_lowercase().as_str() {
+            "ubuntu_dark" => Some(Self::UbuntuDark),
+            "ubuntu_light" => Some(Self::UbuntuLight),
+            "windows_dark" => Some(Self::WindowsDark),
+            "windows_light" => Some(Self::WindowsLight),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppSettings {
-    pub dark_mode: bool,
+    pub theme: AppTheme,
     pub currency_symbol: String,
     pub default_hourly_rate: f64,
     pub week_starts_monday: bool,
@@ -109,7 +191,7 @@ pub struct AppSettings {
 impl Default for AppSettings {
     fn default() -> Self {
         Self {
-            dark_mode: true,
+            theme: AppTheme::default_for_os(),
             currency_symbol: "$".to_string(),
             default_hourly_rate: 0.0,
             week_starts_monday: true,
@@ -242,5 +324,39 @@ mod tests {
         assert_eq!(parse_duration_input("45m"), Some(2700));
         assert_eq!(parse_duration_input("0"), None);
         assert_eq!(parse_duration_input("abc"), None);
+    }
+
+    #[test]
+    fn test_app_theme_helpers() {
+        assert_eq!(AppTheme::ALL.len(), 4);
+        for &theme in AppTheme::ALL {
+            assert_eq!(AppTheme::from_key(theme.as_key()), Some(theme));
+            assert_eq!(
+                AppTheme::from_key(&theme.as_key().to_uppercase()),
+                Some(theme)
+            );
+            assert!(!theme.label().is_empty());
+        }
+        assert_eq!(AppTheme::from_key("unknown"), None);
+
+        assert!(AppTheme::UbuntuDark.is_dark());
+        assert!(!AppTheme::UbuntuLight.is_dark());
+        assert!(AppTheme::WindowsDark.is_dark());
+        assert!(!AppTheme::WindowsLight.is_dark());
+
+        assert!(!AppTheme::UbuntuDark.is_windows());
+        assert!(!AppTheme::UbuntuLight.is_windows());
+        assert!(AppTheme::WindowsDark.is_windows());
+        assert!(AppTheme::WindowsLight.is_windows());
+
+        assert_eq!(AppTheme::UbuntuDark.toggled_mode(), AppTheme::UbuntuLight);
+        assert_eq!(AppTheme::UbuntuLight.toggled_mode(), AppTheme::UbuntuDark);
+        assert_eq!(AppTheme::WindowsDark.toggled_mode(), AppTheme::WindowsLight);
+        assert_eq!(AppTheme::WindowsLight.toggled_mode(), AppTheme::WindowsDark);
+
+        assert_eq!(AppTheme::UbuntuDark.with_dark(false), AppTheme::UbuntuLight);
+        assert_eq!(AppTheme::UbuntuLight.with_dark(true), AppTheme::UbuntuDark);
+        assert_eq!(AppTheme::WindowsDark.with_dark(false), AppTheme::WindowsLight);
+        assert_eq!(AppTheme::WindowsLight.with_dark(true), AppTheme::WindowsDark);
     }
 }

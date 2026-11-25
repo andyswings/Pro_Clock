@@ -1,4 +1,4 @@
-use crate::models::{AppSettings, Client, Project, Tag, TimeEntry};
+use crate::models::{AppSettings, AppTheme, Client, Project, Tag, TimeEntry};
 use anyhow::{Context, Result};
 use chrono::{DateTime, Utc};
 use directories::ProjectDirs;
@@ -113,6 +113,9 @@ impl Database {
 
     pub fn load_settings(&self) -> Result<AppSettings> {
         let mut settings = AppSettings::default();
+        let mut saved_theme: Option<AppTheme> = None;
+        let mut legacy_dark_mode: Option<bool> = None;
+
         let mut stmt = self.conn.prepare("SELECT key, value FROM settings")?;
         let rows = stmt.query_map([], |row| {
             Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
@@ -120,7 +123,12 @@ impl Database {
         for row in rows {
             let (k, v) = row?;
             match k.as_str() {
-                "dark_mode" => settings.dark_mode = v == "true",
+                "theme" => {
+                    if let Some(t) = AppTheme::from_key(&v) {
+                        saved_theme = Some(t);
+                    }
+                }
+                "dark_mode" => legacy_dark_mode = Some(v == "true"),
                 "currency_symbol" => settings.currency_symbol = v,
                 "default_hourly_rate" => {
                     if let Ok(r) = v.parse::<f64>() {
@@ -153,12 +161,23 @@ impl Database {
                 _ => {}
             }
         }
+
+        if let Some(theme) = saved_theme {
+            settings.theme = theme;
+        } else if let Some(dark) = legacy_dark_mode {
+            settings.theme = AppTheme::default_for_os().with_dark(dark);
+        }
+
         Ok(settings)
     }
 
     pub fn save_settings(&self, settings: &AppSettings) -> Result<()> {
         let pairs = [
-            ("dark_mode", if settings.dark_mode { "true" } else { "false" }.to_string()),
+            ("theme", settings.theme.as_key().to_string()),
+            (
+                "dark_mode",
+                if settings.theme.is_dark() { "true" } else { "false" }.to_string(),
+            ),
             ("currency_symbol", settings.currency_symbol.clone()),
             ("default_hourly_rate", format!("{:.2}", settings.default_hourly_rate)),
             (
@@ -584,6 +603,45 @@ mod tests {
         assert_eq!(loaded.currency_symbol, "€");
         assert_eq!(loaded.default_hourly_rate, 85.0);
 
+        Ok(())
+    }
+
+    #[test]
+    fn test_theme_settings_roundtrip() -> Result<()> {
+        let db = Database::open_in_memory()?;
+        for &theme in AppTheme::ALL {
+            let mut settings = db.load_settings()?;
+            settings.theme = theme;
+            db.save_settings(&settings)?;
+            let loaded = db.load_settings()?;
+            assert_eq!(loaded.theme, theme);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn test_legacy_dark_mode_fallback_and_precedence() -> Result<()> {
+        let db = Database::open_in_memory()?;
+        db.conn.execute(
+            "INSERT INTO settings (key, value) VALUES ('dark_mode', 'false')",
+            [],
+        )?;
+        let loaded = db.load_settings()?;
+        assert!(!loaded.theme.is_dark());
+        assert_eq!(loaded.theme, AppTheme::default_for_os().with_dark(false));
+
+        db.conn.execute(
+            "INSERT INTO settings (key, value) VALUES ('theme', 'windows_light')
+             ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+            [],
+        )?;
+        db.conn.execute(
+            "INSERT INTO settings (key, value) VALUES ('dark_mode', 'true')
+             ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+            [],
+        )?;
+        let loaded = db.load_settings()?;
+        assert_eq!(loaded.theme, AppTheme::WindowsLight);
         Ok(())
     }
 }

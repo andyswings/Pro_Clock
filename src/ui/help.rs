@@ -1,7 +1,7 @@
 use crate::notify::open_folder;
-use crate::theme::{card_frame, pill_badge, primary_button, Palette};
+use crate::theme::{card_frame, pill_badge, primary_button, with_alpha, Palette};
 use crate::ui::{NavTab, ProClockApp};
-use egui::{Color32, RichText, ScrollArea, TextEdit, Ui, Vec2};
+use egui::{RichText, ScrollArea, TextEdit, Ui, Vec2};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum HelpTopic {
@@ -71,13 +71,13 @@ pub const HELP_CARDS: &[HelpCard] = &[
         title: "5-Step Getting Started Guide",
         summary: "Go from a fresh install to tracking billable hours and exporting reports in under 5 minutes — completely offline.",
         bullets: &[
-            "1. Configure Settings: Set your Currency Symbol, Default Hourly Rate, Week Start (Monday/Sunday), and Dark or Light theme.",
+            "1. Configure Settings: Set your Currency Symbol, Default Hourly Rate, Week Start (Monday/Sunday), and Ubuntu Yaru or Windows 11 Dark/Light theme.",
             "2. Add Clients & Projects: Create clients in the Clients tab, then create color-coded projects linked to clients with default billable status and rates.",
             "3. Track Your Time: Use Time Tracker (live stopwatch or Manual mode), Weekly Timesheet (quick grid logging), or Pomodoro (focus intervals).",
             "4. Review Reports & Export: Filter by date range, project, client, or billable status in Reports & Export, then export to CSV or JSON.",
             "5. Back Up Your Data: Use Create Backup Copy in Settings to save a timestamped copy of your local SQLite database.",
         ],
-        tip: Some("Tip: Use the sidebar theme button at the bottom-left anytime to switch between Ubuntu Yaru Dark and Light themes."),
+        tip: Some("Tip: Use the sidebar theme button at the bottom-left anytime to toggle Dark/Light mode, and switch between Ubuntu Yaru and Windows 11 styles in Settings."),
         target_tab: Some(NavTab::Settings),
         target_label: Some("Open Settings →"),
     },
@@ -131,7 +131,7 @@ pub const HELP_CARDS: &[HelpCard] = &[
         title: "Weekly Timesheet Grid & Quick-Log Formats",
         summary: "Log hours across an entire week in seconds using the Clockify-style Project × Day matrix.",
         bullets: &[
-            "Navigate weeks using ◀ Prev, This Week, and Next ▶. Today's column header is highlighted in accent orange.",
+            "Navigate weeks using ◀ Prev, This Week, and Next ▶. Today's column header is highlighted in the theme accent color.",
             "Set whether weeks start on Monday or Sunday in Settings (Week starts on Monday).",
             "Add an empty project row using the dropdown (Select project to add row...) and clicking + Add Row.",
             "Click any cell in the grid to open the Quick Log card, type a duration and optional note, and press Enter or click + Add Time.",
@@ -381,8 +381,8 @@ pub fn render_help_view(app: &mut ProClockApp, ui: &mut Ui, p: &Palette) {
                 if let Some(tip) = card.tip {
                     ui.add_space(8.0);
                     egui::Frame::none()
-                        .fill(Color32::from_rgba_unmultiplied(3, 169, 244, 22))
-                        .stroke(egui::Stroke::new(1.0_f32, Color32::from_rgba_unmultiplied(3, 169, 244, 90)))
+                        .fill(with_alpha(p.accent_blue, 22))
+                        .stroke(egui::Stroke::new(1.0_f32, with_alpha(p.accent_blue, 90)))
                         .rounding(egui::Rounding::same(6.0))
                         .inner_margin(egui::Margin::symmetric(10.0, 6.0))
                         .show(ui, |ui| {

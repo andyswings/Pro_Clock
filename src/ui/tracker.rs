@@ -1,6 +1,6 @@
 use crate::models::{format_duration, format_money, parse_hex_color, TimeEntry};
 use crate::notify::send_notification;
-use crate::theme::{card_frame, color_dot, pill_badge, primary_button, Palette};
+use crate::theme::{card_frame, color_dot, pill_badge, primary_button, with_alpha, Palette};
 use crate::ui::{EditEntryModal, ProClockApp, TrackerMode};
 use chrono::{Duration, Local, NaiveDate, Utc};
 use egui::{Color32, ComboBox, Context, Frame, Margin, RichText, Rounding, ScrollArea, Stroke, TextEdit, Ui, Vec2};
@@ -160,7 +160,7 @@ pub fn render_tracker_view(app: &mut ProClockApp, ui: &mut Ui, p: &Palette) {
             // Billable toggle button
             let bill_color = if app.input_billable { p.accent_blue } else { p.text_muted };
             let bill_bg = if app.input_billable {
-                Color32::from_rgba_unmultiplied(3, 169, 244, 35)
+                with_alpha(p.accent_blue, 35)
             } else {
                 Color32::TRANSPARENT
             };

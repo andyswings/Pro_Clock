@@ -61,7 +61,7 @@ Clockify popularized clean project-based time tracking, weekly timesheets, and b
 - **🍅 Pomodoro Timer & Native Notifications**: Focus, Short Break, and Long Break countdown ring with cycle indicator dots, background ticking across all tabs, automatic SQLite time-entry logging, and native OS notifications (`notify-send` on Linux, PowerShell balloon tips on Windows, `osascript` on macOS).
 - **📊 Reports, Analytics & Offline Export**: Filter by `Today`, `This Week`, `Last Week`, `This Month`, `Last Month`, `All Time`, or `Custom` date range, plus Project, Client, and `Billable only`. View 4 KPI summary cards, a Daily Hours bar chart, Breakdown by Project bars, and export to **CSV** or **JSON**.
 - **💰 Clients, Projects, Tags & 3-Tier Billing**: Color-coded projects (10 preset colors), client notes, archive/restore support, multi-select tags, and automatic 3-tier rate resolution (**Entry Custom Rate** → **Project Hourly Rate** → **Default Hourly Rate**).
-- **🎨 Dark & Light Themes + Built-in Help**: Ubuntu Yaru Dark and GNOME Adwaita-inspired Light themes, plus a searchable offline **❓ Help & Guide** tab built right into the sidebar.
+- **🎨 Dark & Light Themes + Built-in Help**: Ubuntu Yaru (Dark & Light) and Windows 11 Fluent (Dark & Light) themes, plus a searchable offline **❓ Help & Guide** tab built right into the sidebar.
 
 ---
 
@@ -185,7 +185,7 @@ Pro_Clock/
 │   ├── db.rs            # Local SQLite persistence (WAL mode) & CRUD queries
 │   ├── export.rs        # Clockify-compatible CSV and JSON export
 │   ├── notify.rs        # Cross-platform desktop notifications & folder opener
-│   ├── theme.rs         # Ubuntu Yaru Dark & Light palettes and reusable UI widgets
+│   ├── theme.rs         # Ubuntu Yaru & Windows 11 (Dark/Light) palettes and reusable UI widgets
 │   └── ui/              # Tracker, Timesheet, Pomodoro, Reports, Manage & Help views
 ├── docs/
 │   ├── HELP.md          # Complete offline reference manual

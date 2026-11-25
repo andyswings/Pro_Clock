@@ -54,9 +54,9 @@ Pro Clock opens with a left navigation sidebar and a main workspace panel (defau
 
 ### Persistent Sidebar Indicators & Controls
 
-- **Live `TRACKING` Badge**: Whenever a Time Tracker timer is running, an orange badge in the sidebar displays the live `HH:MM:SS` elapsed clock and task description regardless of which tab you are viewing.
+- **Live `TRACKING` Badge**: Whenever a Time Tracker timer is running, an accent-colored badge in the sidebar displays the live `HH:MM:SS` elapsed clock and task description regardless of which tab you are viewing.
 - **Live Pomodoro Badge**: Whenever a Pomodoro session is running, a color-coded badge displays the active phase (`FOCUS SESSION`, `SHORT BREAK`, or `LONG BREAK`) and `MM:SS` countdown.
-- **Theme Switcher**: Click **☀ Switch to Light** / **🌙 Switch to Dark** at the bottom-left to toggle between Ubuntu Yaru Dark and Light themes immediately.
+- **Theme Switcher**: Click **☀ Switch to Light** / **🌙 Switch to Dark** at the bottom-left to toggle between Light and Dark mode within your active theme style (Ubuntu Yaru or Windows 11) immediately.
 - **Status Toast Banners**: Confirmations and validation errors appear at the top of the workspace for 4.5 seconds (or dismiss manually with `✕`).
 
 ---
@@ -215,7 +215,7 @@ Enter your target folder in **Folder:** (defaults to your system `Documents` dir
 ## Settings (`⚙ Settings`)
 
 - **Appearance & Workspace**:
-  - **Dark Mode (Ubuntu Yaru Dark)**: Toggles dark/light theme immediately.
+  - **Theme**: Choose between **Ubuntu Yaru Dark**, **Ubuntu Yaru Light**, **Windows 11 Dark**, and **Windows 11 Light** (applies immediately).
   - **Week starts on Monday**: Controls both **Weekly Timesheet** columns and **Reports** (`This Week` / `Last Week`).
   - **Currency Symbol**: Single or multi-character currency prefix (e.g., `$`, `€`, `£`, `CHF `).
   - **Default Hourly Rate**: Global fallback hourly rate. Click **Save Settings** to persist currency and default rate.

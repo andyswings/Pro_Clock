@@ -7,7 +7,7 @@ pub mod tracker;
 
 use crate::db::Database;
 use crate::models::{format_duration, AppSettings, Client, Project, Tag, TimeEntry};
-use crate::theme::{apply_theme, color_dot, Palette};
+use crate::theme::{apply_theme, color_dot, with_alpha, Palette};
 use crate::ui::pomodoro::{PomodoroPhase, PomodoroState};
 use chrono::{Duration, Local, NaiveDate, NaiveDateTime, NaiveTime, TimeZone, Utc};
 use egui::{Color32, Context, Frame, Margin, RichText, Rounding, Stroke, Vec2};
@@ -144,7 +144,7 @@ pub struct ProClockApp {
 impl ProClockApp {
     pub fn new(cc: &eframe::CreationContext<'_>, db: Database) -> Self {
         let settings = db.load_settings().unwrap_or_default();
-        apply_theme(&cc.egui_ctx, settings.dark_mode);
+        apply_theme(&cc.egui_ctx, settings.theme);
 
         let now = Local::now();
         let one_hour_ago = now - Duration::hours(1);
@@ -283,11 +283,11 @@ impl ProClockApp {
                     painter.circle_filled(rect.center(), 13.0, p.accent);
                     painter.line_segment(
                         [rect.center(), rect.center() + Vec2::new(0.0, -7.0)],
-                        Stroke::new(2.2_f32, Color32::WHITE),
+                        Stroke::new(2.2_f32, p.text_on_accent),
                     );
                     painter.line_segment(
                         [rect.center(), rect.center() + Vec2::new(5.5, 2.5)],
-                        Stroke::new(2.2_f32, Color32::WHITE),
+                        Stroke::new(2.2_f32, p.text_on_accent),
                     );
                     ui.add_space(4.0);
                     ui.vertical(|ui| {
@@ -305,9 +305,9 @@ impl ProClockApp {
                         // Live running timer badge in sidebar
                         if let Some(running) = self.running_entry().cloned() {
                             Frame::none()
-                                .fill(Color32::from_rgba_unmultiplied(233, 84, 32, 32))
+                                .fill(with_alpha(p.accent, 32))
                                 .stroke(Stroke::new(1.0_f32, p.accent))
-                                .rounding(Rounding::same(8.0))
+                                .rounding(Rounding::same(p.card_rounding.min(8.0)))
                                 .inner_margin(Margin::same(10.0))
                                 .show(ui, |ui| {
                                     ui.horizontal(|ui| {
@@ -343,14 +343,9 @@ impl ProClockApp {
                                 PomodoroPhase::LongBreak => p.success,
                             };
                             Frame::none()
-                                .fill(Color32::from_rgba_unmultiplied(
-                                    pomo_color.r(),
-                                    pomo_color.g(),
-                                    pomo_color.b(),
-                                    30,
-                                ))
+                                .fill(with_alpha(pomo_color, 30))
                                 .stroke(Stroke::new(1.0_f32, pomo_color))
-                                .rounding(Rounding::same(8.0))
+                                .rounding(Rounding::same(p.card_rounding.min(8.0)))
                                 .inner_margin(Margin::same(10.0))
                                 .show(ui, |ui| {
                                     ui.horizontal(|ui| {
@@ -401,7 +396,7 @@ impl ProClockApp {
                             .color(p.text_muted),
                     );
                     ui.add_space(4.0);
-                    let theme_label = if self.settings.dark_mode {
+                    let theme_label = if self.settings.theme.is_dark() {
                         "☀  Switch to Light"
                     } else {
                         "🌙  Switch to Dark"
@@ -411,11 +406,15 @@ impl ProClockApp {
                             egui::Button::new(RichText::new(theme_label).size(12.5))
                                 .min_size(Vec2::new(ui.available_width(), 30.0)),
                         )
+                        .on_hover_text(format!(
+                            "Active: {} (change Ubuntu / Windows style in Settings)",
+                            self.settings.theme.label()
+                        ))
                         .clicked()
                     {
-                        self.settings.dark_mode = !self.settings.dark_mode;
+                        self.settings.theme = self.settings.theme.toggled_mode();
                         let _ = self.db.save_settings(&self.settings);
-                        apply_theme(ctx, self.settings.dark_mode);
+                        apply_theme(ctx, self.settings.theme);
                     }
                 });
             });
@@ -424,13 +423,13 @@ impl ProClockApp {
     fn nav_button(&mut self, ui: &mut egui::Ui, p: &Palette, tab: NavTab, label: &str) {
         let selected = self.active_tab == tab;
         let fill = if selected {
-            Color32::from_rgba_unmultiplied(233, 84, 32, 42)
+            with_alpha(p.accent, 36)
         } else {
             Color32::TRANSPARENT
         };
         let text_color = if selected { p.accent } else { p.text_primary };
         let stroke = if selected {
-            Stroke::new(1.0_f32, Color32::from_rgba_unmultiplied(233, 84, 32, 110))
+            Stroke::new(1.0_f32, with_alpha(p.accent, 110))
         } else {
             Stroke::NONE
         };
@@ -438,10 +437,20 @@ impl ProClockApp {
         let btn = egui::Button::new(RichText::new(label).size(13.5).color(text_color).strong())
             .fill(fill)
             .stroke(stroke)
-            .rounding(Rounding::same(7.0))
+            .rounding(Rounding::same(p.control_rounding))
             .min_size(Vec2::new(ui.available_width(), 34.0));
 
-        if ui.add(btn).clicked() {
+        let resp = ui.add(btn);
+        if p.is_windows && selected {
+            let r = resp.rect;
+            let pill = egui::Rect::from_min_size(
+                egui::pos2(r.left() + 2.0, r.top() + 7.0),
+                Vec2::new(3.0, (r.height() - 14.0).max(6.0)),
+            );
+            ui.painter()
+                .rect_filled(pill, Rounding::same(1.5), p.accent);
+        }
+        if resp.clicked() {
             self.active_tab = tab;
         }
     }
@@ -466,7 +475,7 @@ impl eframe::App for ProClockApp {
             }
         }
 
-        let p = Palette::for_mode(self.settings.dark_mode);
+        let p = Palette::for_theme(self.settings.theme);
         self.render_sidebar(ctx, &p);
 
         egui::CentralPanel::default()
