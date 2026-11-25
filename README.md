@@ -97,6 +97,12 @@ sudo apt install ./dist/pro-clock_0.2.0_amd64.deb
 ```
 This installs the binary to `~/.local/bin/pro-clock` and adds **Pro Clock** to your Ubuntu Applications menu.
 
+#### Option 3: Portable AppImage (works across Linux distros, no install required)
+```bash
+./packaging/appimage/build-appimage.sh
+./dist/pro-clock_0.2.0_x86_64.AppImage
+```
+
 To uninstall (preserves your SQLite database):
 ```bash
 ./uninstall.sh
@@ -190,7 +196,7 @@ Pro_Clock/
 ├── docs/
 │   ├── HELP.md          # Complete offline reference manual
 │   └── tutorials/       # 6 step-by-step tutorials + learning paths hub
-├── packaging/           # Debian (.deb), .desktop launcher, and Windows Inno Setup scripts
+├── packaging/           # Debian (.deb), AppImage, Flatpak, .desktop, and Windows Inno Setup scripts
 └── assets/              # Scalable SVG & ICO app icons
 ```
 

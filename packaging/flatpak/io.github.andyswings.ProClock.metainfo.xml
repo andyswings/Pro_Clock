@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.andyswings.ProClock</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <name>Pro Clock</name>
+  <summary>Free, open-source, 100% offline Clockify replacement</summary>
+  <description>
+    <p>
+      Pro Clock is a fast, native desktop time tracker built in Rust with zero cloud dependencies,
+      no accounts, and all data stored locally in a single SQLite database.
+    </p>
+    <ul>
+      <li>Live stopwatch timer and manual time entry with crash-safe SQLite persistence</li>
+      <li>Weekly timesheet grid with rapid duration entry</li>
+      <li>Built-in Pomodoro focus timer with desktop notifications and cycle tracking</li>
+      <li>Unlimited projects, clients, tags, and 3-tier billable hourly rates</li>
+      <li>Visual reports, daily charts, and Clockify-compatible CSV and JSON export</li>
+      <li>Ubuntu Yaru and Windows 11 Fluent Dark and Light themes plus offline Help &amp; Guide</li>
+    </ul>
+  </description>
+  <launchable type="desktop-id">io.github.andyswings.ProClock.desktop</launchable>
+  <url type="homepage">https://github.com/andyswings/Pro_Clock</url>
+  <developer id="io.github.andyswings">
+    <name>Pro Clock Contributors</name>
+  </developer>
+  <content_rating type="oars-1.1" />
+  <provides>
+    <binary>pro-clock</binary>
+  </provides>
+  <releases>
+    <release version="0.2.0" date="2026-11-25">
+      <description>
+        <p>
+          Added Windows 11 Fluent Dark and Light themes alongside Ubuntu Yaru,
+          built-in offline Help &amp; Guide, and Linux/Windows packaging.
+        </p>
+      </description>
+    </release>
+  </releases>
+</component>

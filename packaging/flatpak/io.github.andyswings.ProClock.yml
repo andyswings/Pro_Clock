@@ -1,0 +1,46 @@
+app-id: io.github.andyswings.ProClock
+runtime: org.freedesktop.Platform
+runtime-version: '25.08'
+sdk: org.freedesktop.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.rust-stable
+command: pro-clock
+finish-args:
+  - --share=ipc
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
+  - --filesystem=xdg-documents
+  - --talk-name=org.freedesktop.Notifications
+build-options:
+  append-path: /usr/lib/sdk/rust-stable/bin
+  env:
+    CARGO_HOME: /run/build/pro-clock/cargo
+modules:
+  - name: pro-clock
+    buildsystem: simple
+    build-commands:
+      - cargo --offline build --release --locked
+      - install -Dm755 target/release/pro-clock /app/bin/pro-clock
+      - install -Dm644 packaging/flatpak/io.github.andyswings.ProClock.desktop /app/share/applications/io.github.andyswings.ProClock.desktop
+      - install -Dm644 assets/pro-clock.svg /app/share/icons/hicolor/scalable/apps/io.github.andyswings.ProClock.svg
+      - install -Dm644 packaging/flatpak/io.github.andyswings.ProClock.metainfo.xml /app/share/metainfo/io.github.andyswings.ProClock.metainfo.xml
+      - install -Dm644 LICENSE /app/share/licenses/pro-clock/LICENSE
+      - install -Dm644 README.md /app/share/doc/pro-clock/README.md
+      - install -Dm644 docs/HELP.md /app/share/doc/pro-clock/docs/HELP.md
+      - install -Dm644 -t /app/share/doc/pro-clock/docs/tutorials docs/tutorials/*.md
+    sources:
+      - type: dir
+        path: ../..
+        skip:
+          - target
+          - dist
+          - .git
+          - .flatpak-builder
+      - type: dir
+        path: ../../dist/flatpak-vendor/vendor
+        dest: vendor
+      - type: file
+        path: ../../dist/flatpak-vendor/config.toml
+        dest: .cargo
+        dest-filename: config.toml

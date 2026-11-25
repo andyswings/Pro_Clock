@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Pro Clock
+GenericName=Time Tracker
+Comment=Free, open-source, 100% offline Clockify replacement built in Rust
+Exec=pro-clock
+Icon=io.github.andyswings.ProClock
+Terminal=false
+Categories=Office;Utility;ProjectManagement;
+Keywords=time;tracker;clockify;timer;timesheet;billable;offline;
+StartupWMClass=pro-clock
